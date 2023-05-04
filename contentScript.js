@@ -225,7 +225,7 @@ async function createPopUp(movieTitle) {
   popup.insertAdjacentHTML('beforeend', dataContentHTML);
 
   // Make another API request to find streaming availability
-  const STREAMING_AVAILABILITY_URL = `https://streaming-availability.p.rapidapi.com/v2/services?title=${movieTitle}&country=us&show_type=movie&output_language=en`;
+  const STREAMING_AVAILABILITY_URL = `https://streaming-availability.p.rapidapi.com/v2/get/basic?imdb_id=${data.imdbID}&country=us&output_language=en`;
   const streamingResponse = await fetch(STREAMING_AVAILABILITY_URL, {
     headers: {
       'X-RapidAPI-Key': STREAMING_API_KEY,
@@ -238,35 +238,17 @@ async function createPopUp(movieTitle) {
     'streaming-availability'
   );
 
-  // Only search these popular services
-  const STREAMING_SERVICES = {
-    apple: true,
-    disney: true,
-    hbo: true,
-    hulu: true,
-    netflix: true,
-    prime: true,
-  };
-
-  // need to search if any of the following are true:
-  // addon, buy, free, rent
-
   const streamingProviders = [];
 
-  Object.keys(streamingData.result).forEach((service) => {
-    if (!STREAMING_SERVICES[service]) return;
-    const types =
-      streamingData.result[service]?.countries?.us?.supportedStreamingTypes;
-    if (types['free'] || types['addon'] || types['buy'] || types['rent']) {
-      if (service === 'hbo') streamingProviders.push(service.toUpperCase());
-      else
-        streamingProviders.push(
-          service.charAt(0).toUpperCase() + service.slice(1)
-        );
+  for (const service in streamingData?.result?.streamingInfo?.us) {
+    if (service === 'hbo') {
+      streamingProviders.push(service.toUpperCase());
+    } else {
+      streamingProviders.push(
+        service.charAt(0).toUpperCase() + service.slice(1)
+      );
     }
-  });
-
-  console.log(streamingProviders);
+  }
 
   streamingAvailabilitySpan.innerHTML = `🎥&nbsp;&nbsp;${streamingProviders.join(
     ', '
