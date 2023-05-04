@@ -5,6 +5,11 @@
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting", "contextMenus", "tabs"],
   "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "ff4-16.png",
+    "48": "ff4-48.png",
+    "128": "ff4-128.png"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
