@@ -1,14 +1,18 @@
 {
   "name": "FlickFacts",
-  "description": "Look up film data, such as ratings and runtime, with ease.",
+  "description": "Select movie text on a website and open a popup to view the movie's data",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting", "contextMenus", "tabs"],
   "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"],
+      "css": ["popupStyles.css"],
       "run_at": "document_end"
     }
   ],
