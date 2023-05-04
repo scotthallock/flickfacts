@@ -18,23 +18,13 @@ async function createPopUp(movieTitle) {
   let popup = document.getElementById('__flickfacts__');
   if (popup) popup.remove();
 
-  console.log('FlickFacts: ', movieTitle);
-
   movieTitle = movieTitle.replace(' ', '+');
-
-  const OMDB_URL = `https://www.omdbapi.com/?i=tt3896198&apikey=${OMDB_API_KEY}&t=${movieTitle}`;
-  const res = await fetch(OMDB_URL);
-  const data = await res.json();
-
-  // Handle movie not found
-  if (data.Error) {
-    console.log('ERROR: ', data.Error);
-    // do something more here
-  }
 
   const cssString = `
     <style>
 #__flickfacts__ {
+  z-index: 10000;
+
   font-family: sans-serif;
   
   position: fixed;
@@ -128,57 +118,110 @@ async function createPopUp(movieTitle) {
   color: #f1f5f9;
   text-decoration: underline;
 }
+
+#__flickfacts__ .loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+#__flickfacts__ .spinner {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+
+  border-top: 4px solid #fff;
+	border-right: 4px solid #fff;
+	border-bottom: 4px solid #777;
+	border-left: 4px solid #777;
+
+  transform: rotate(-45deg);
+
+  animation: flickfactsspin 1.2s infinite ease-in-out;
+}
+
+@keyframes flickfactsspin {
+  to { transform: rotate(315deg) };
+}
+
+#__flickfacts__ .loading-message {
+  font-size: 25px;
+}
     </style>
   `;
 
-  const htmlString = `
-   <div id="__flickfacts__">
-    <div class="left-container">
-      <span class="movie-data title">${data.Title}</span>
-      <div class="movie-data">
-        <span>${data.Year}</span>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
-        <span>${data.Rated}</span>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
-        <span>${data.Runtime}</span>
-      </div>
-      <div class="movie-data genre-container">
-        ${data.Genre.split(', ').reduce((acc, genre) => {
-          return acc + `<span class="genre">${genre}</span>`;
-        }, '')}
-      </div>
-      <hr>
-      <div class="rating-container">
-        <div class="rating-wrapper">
-          <span>Metascore</span>
-          <span><span class="score">⭐ ${data.Metascore}</span> / 100</span>
-        </div>
-        <div class="rating-wrapper">
-          <span>IMDB</span>
-          <span><span class="score">⭐ ${data.imdbRating}</span> / 10</span>
-        </div>
-      </div>
-      <hr>
-      <span>🎬&nbsp;&nbsp;${data.Director}</span>
-      <span>🏆&nbsp;&nbsp;${data.Awards}</span>
-
-      <a class="imdb-link" href="https://www.imdb.com/title/${
-        data.imdbID
-      }" target="_blank">
-        Go to IMDB page
-      </a>
-
-    </div>
-
-    <div class="poster-container">
-      <img src="${data.Poster}" alt="poster"/>
-    </div>
-  </div>
-  `;
-
   document.body.insertAdjacentHTML('beforeend', cssString);
-  document.body.insertAdjacentHTML('beforeend', htmlString);
+
+  // create the popup parent container
+  document.body.insertAdjacentHTML(
+    'beforeend',
+    `<div id="__flickfacts__">
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <span class="loading-message">Loading data from FlickFacts</span>
+      </div>
+    </div>`
+  );
 
   popup = document.getElementById('__flickfacts__');
-  popup.addEventListener('click', () => {
-    popup.remove();
-  });
+  popup.addEventListener('click', () => popup.remove());
+
+  // Fetch data from API
+  const OMDB_URL = `https://www.omdbapi.com/?i=tt3896198&apikey=${OMDB_API_KEY}&t=${movieTitle}`;
+  const res = await fetch(OMDB_URL);
+  const data = await res.json();
+
+  // Handle movie not found
+  if (data.Error) {
+    popup.innerHTML = '';
+    popup.insertAdjacentHTML(
+      'beforeend',
+      `<div><span class="loading-message">Movie not found 😨</span></div>`
+    );
+    return;
+  }
+
+  setTimeout(() => {
+    const dataContentHTML = `
+    <div class="left-container">
+    <span class="movie-data title">${data.Title}</span>
+    <div class="movie-data">
+      <span>${data.Year}</span>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
+      <span>${data.Rated}</span>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
+      <span>${data.Runtime}</span>
+    </div>
+    <div class="movie-data genre-container">
+      ${data.Genre.split(', ').reduce((acc, genre) => {
+        return acc + `<span class="genre">${genre}</span>`;
+      }, '')}
+    </div>
+    <hr>
+    <div class="rating-container">
+      <div class="rating-wrapper">
+        <span>Metascore</span>
+        <span><span class="score">⭐ ${data.Metascore}</span> / 100</span>
+      </div>
+      <div class="rating-wrapper">
+        <span>IMDB</span>
+        <span><span class="score">⭐ ${data.imdbRating}</span> / 10</span>
+      </div>
+    </div>
+    <hr>
+    <span>🎬&nbsp;&nbsp;${data.Director}</span>
+    <span>🏆&nbsp;&nbsp;${data.Awards}</span>
+    <a class="imdb-link" href="https://www.imdb.com/title/${
+      data.imdbID
+    }" target="_blank">
+      Go to IMDB page
+    </a>
+  </div>
+  <div class="poster-container">
+    <img src="${data.Poster}" alt="poster"/>
+  </div>
+`;
+
+    popup.innerHTML = '';
+    popup.insertAdjacentHTML('beforeend', dataContentHTML);
+  }, 2000);
 }
