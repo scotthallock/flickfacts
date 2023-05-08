@@ -1,8 +1,8 @@
 console.log('Content script loaded.');
 
-// We should probably hide these lol
-const OMDB_API_KEY = '6d89a28c';
-const STREAMING_API_KEY = '3f7f5d8280mshe3685837ccd7e7bp1d6e52jsn71369741eb40';
+// The extension will not work without the keys.
+const OMDB_API_KEY = '';
+const STREAMING_API_KEY = '';
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.greeting !== 'get_movie_data') return;
